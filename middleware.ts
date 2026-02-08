@@ -9,9 +9,11 @@ const CORS_HEADERS: Record<string, string> = {
 };
 
 export function middleware(req: NextRequest) {
-  // Preflight: respondemos aquí para que la respuesta tenga CORS desde el Edge
   if (req.method === "OPTIONS") {
-    return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+    return new Response(null, {
+      status: 204,
+      headers: new Headers(CORS_HEADERS),
+    });
   }
 
   const res = NextResponse.next();
