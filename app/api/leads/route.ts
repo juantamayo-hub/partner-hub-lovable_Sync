@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { computeDuplicates, getLeadsFromSheet } from "@/lib/server/lead-data";
-import { withCors, corsOptions } from "@/lib/api-cors";
+import { corsHeaders, corsOptions } from "@/lib/api-cors";
 
 export async function OPTIONS() {
   return corsOptions();
@@ -65,14 +65,12 @@ export async function GET(request: Request) {
         (lead.duplicateOther ? "other_partners" : lead.duplicateSame ? "same_partner" : null),
     }));
 
-    const res = NextResponse.json({ leads: payload });
-    return withCors(res);
+    return NextResponse.json({ leads: payload }, { headers: corsHeaders });
   } catch (error) {
-    const res = NextResponse.json(
+    return NextResponse.json(
       { error: (error as Error).message ?? "Failed to read leads." },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
-    return withCors(res);
   }
 }
 

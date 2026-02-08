@@ -4,13 +4,13 @@ import {
   computeDuplicates,
   getLeadsFromSheet,
 } from "@/lib/server/lead-data";
-import { withCors, corsOptions } from "@/lib/api-cors";
+import { corsHeaders, corsOptions } from "@/lib/api-cors";
 
 export async function OPTIONS() {
   return corsOptions();
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const partnerName = url.searchParams.get("partner_name");
@@ -48,13 +48,14 @@ export async function GET() {
       .sort((a, b) => b[1] - a[1])
       .map(([reason, count]) => ({ reason, count }));
 
-    const res = NextResponse.json({ ...metrics, lossReasons });
-    return withCors(res);
-  } catch (error) {
-    const res = NextResponse.json(
-      { error: (error as Error).message ?? "Failed to compute metrics." },
-      { status: 500 }
+    return NextResponse.json(
+      { ...metrics, lossReasons },
+      { headers: corsHeaders }
     );
-    return withCors(res);
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message ?? "Failed to compute metrics." },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }

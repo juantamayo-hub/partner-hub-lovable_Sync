@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { readSheetValues } from "@/lib/server/google-sheets";
-import { withCors, corsOptions } from "@/lib/api-cors";
+import { corsHeaders, corsOptions } from "@/lib/api-cors";
 
 const USERS_TAB = process.env.GOOGLE_USERS_SHEET_TAB || "Users";
 
@@ -24,8 +24,7 @@ export async function GET() {
   try {
     const rows = await readSheetValues(USERS_TAB);
     if (rows.length === 0) {
-      const res = NextResponse.json({ partners: [] });
-      return withCors(res);
+      return NextResponse.json({ partners: [] }, { headers: corsHeaders });
     }
 
     const headerRowIndex = rows.findIndex((row, index) => {
@@ -39,8 +38,7 @@ export async function GET() {
     const partnerIndex = findHeaderIndex(headers, ["partner", "org", "company", "empresa"]);
 
     if (partnerIndex === -1) {
-      const res = NextResponse.json({ partners: [] });
-      return withCors(res);
+      return NextResponse.json({ partners: [] }, { headers: corsHeaders });
     }
 
     // From A4 onwards in the Users sheet (skip first 3 data rows)
@@ -53,14 +51,15 @@ export async function GET() {
       a.localeCompare(b)
     );
 
-    const res = NextResponse.json({ partners: uniquePartners });
-    return withCors(res);
+    return NextResponse.json(
+      { partners: uniquePartners },
+      { headers: corsHeaders }
+    );
   } catch (error) {
     console.error("users/partners error:", error);
-    const res = NextResponse.json(
+    return NextResponse.json(
       { error: (error as Error).message ?? "Failed to read partners." },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
-    return withCors(res);
   }
 }

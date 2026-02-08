@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getLeadsFromSheet } from "@/lib/server/lead-data";
 import { aggregateByStage } from "@/lib/server/stage-normalization";
-import { withCors, corsOptions } from "@/lib/api-cors";
+import { corsHeaders, corsOptions } from "@/lib/api-cors";
 
 export async function OPTIONS() {
   return corsOptions();
@@ -51,31 +51,30 @@ export async function GET(request: Request) {
       filteredLeads.map((l) => ({ stage: l.stage }))
     );
 
-    const res = NextResponse.json({
-      total,
-      countsByStage,
-    });
-    return withCors(res);
+    return NextResponse.json(
+      { total, countsByStage },
+      { headers: corsHeaders }
+    );
   } catch (error) {
     console.error("[API] /api/leads/stages error:", error);
-    
+
     const message =
       error instanceof Error ? error.message : "Failed to fetch stage data";
-    
-    // Provide helpful error for missing credentials
+
     if (message.includes("Google") || message.includes("credentials")) {
-      const res = NextResponse.json(
+      return NextResponse.json(
         {
           error: "Google Sheets credentials not configured",
           details: message,
           hint: "Ensure GOOGLE_SHEETS_ID, GOOGLE_SERVICE_ACCOUNT_EMAIL, and GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY are set.",
         },
-        { status: 503 }
+        { status: 503, headers: corsHeaders }
       );
-      return withCors(res);
     }
 
-    const res = NextResponse.json({ error: message }, { status: 500 });
-    return withCors(res);
+    return NextResponse.json(
+      { error: message },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
