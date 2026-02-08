@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { computeDuplicates, getLeadsFromSheet } from "@/lib/server/lead-data";
+import { withCors, corsOptions } from "@/lib/api-cors";
+
+export async function OPTIONS() {
+  return corsOptions();
+}
 
 export async function GET(request: Request) {
   try {
@@ -60,12 +65,14 @@ export async function GET(request: Request) {
         (lead.duplicateOther ? "other_partners" : lead.duplicateSame ? "same_partner" : null),
     }));
 
-    return NextResponse.json({ leads: payload });
+    const res = NextResponse.json({ leads: payload });
+    return withCors(res);
   } catch (error) {
-    return NextResponse.json(
+    const res = NextResponse.json(
       { error: (error as Error).message ?? "Failed to read leads." },
       { status: 500 }
     );
+    return withCors(res);
   }
 }
 

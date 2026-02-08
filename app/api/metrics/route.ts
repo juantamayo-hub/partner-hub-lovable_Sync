@@ -4,44 +4,13 @@ import {
   computeDuplicates,
   getLeadsFromSheet,
 } from "@/lib/server/lead-data";
+import { withCors, corsOptions } from "@/lib/api-cors";
 
-// ✅ Ajusta aquí si tu preview cambia.
-// (puedes permitir varios si quieres)
-function isAllowedOrigin(origin: string) {
-  return (
-    (origin.startsWith("https://id-preview--") && origin.endsWith(".lovable.app")) ||
-    origin === "http://localhost:5173" ||
-    origin === "http://localhost:3000"
-  );
+export async function OPTIONS() {
+  return corsOptions();
 }
 
-function withCors(res: NextResponse, origin: string | null) {
-if (origin && isAllowedOrigin(origin)) {
-    res.headers.set("Access-Control-Allow-Origin", origin);
-    res.headers.set("Access-Control-Allow-Credentials", "true");
-    res.headers.set("Vary", "Origin");
-  }
-  res.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS"
-  );
-  res.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  return res;
-}
-
-// ✅ Preflight (CORS)
-export async function OPTIONS(request: Request) {
-  const origin = request.headers.get("origin");
-  const res = new NextResponse(null, { status: 204 });
-  return withCors(res, origin);
-}
-
-export async function GET(request: Request) {
-  const origin = request.headers.get("origin");
-
+export async function GET() {
   try {
     const url = new URL(request.url);
     const partnerName = url.searchParams.get("partner_name");
@@ -80,12 +49,12 @@ export async function GET(request: Request) {
       .map(([reason, count]) => ({ reason, count }));
 
     const res = NextResponse.json({ ...metrics, lossReasons });
-    return withCors(res, origin);
+    return withCors(res);
   } catch (error) {
     const res = NextResponse.json(
       { error: (error as Error).message ?? "Failed to compute metrics." },
       { status: 500 }
     );
-    return withCors(res, origin);
+    return withCors(res);
   }
 }

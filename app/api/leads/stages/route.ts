@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getLeadsFromSheet } from "@/lib/server/lead-data";
 import { aggregateByStage } from "@/lib/server/stage-normalization";
+import { withCors, corsOptions } from "@/lib/api-cors";
+
+export async function OPTIONS() {
+  return corsOptions();
+}
 
 /**
  * GET /api/leads/stages
@@ -46,10 +51,11 @@ export async function GET(request: Request) {
       filteredLeads.map((l) => ({ stage: l.stage }))
     );
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       total,
       countsByStage,
     });
+    return withCors(res);
   } catch (error) {
     console.error("[API] /api/leads/stages error:", error);
     
@@ -58,7 +64,7 @@ export async function GET(request: Request) {
     
     // Provide helpful error for missing credentials
     if (message.includes("Google") || message.includes("credentials")) {
-      return NextResponse.json(
+      const res = NextResponse.json(
         {
           error: "Google Sheets credentials not configured",
           details: message,
@@ -66,8 +72,10 @@ export async function GET(request: Request) {
         },
         { status: 503 }
       );
+      return withCors(res);
     }
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    const res = NextResponse.json({ error: message }, { status: 500 });
+    return withCors(res);
   }
 }
