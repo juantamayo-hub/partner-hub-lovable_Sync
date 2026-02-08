@@ -1,18 +1,17 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  typedRoutes: false,
-  output: "standalone",
-  turbopack: {
-    root: __dirname,
+  async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET,POST,PUT,DELETE,OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+        ],
+      },
+    ];
   },
 };
 
 export default nextConfig;
-
