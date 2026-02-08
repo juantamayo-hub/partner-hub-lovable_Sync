@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { apiUrl } from '@/lib/api-base';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -103,7 +104,7 @@ export function DashboardLayout({ children, title, description, actions }: Dashb
     let mounted = true;
 
     const loadPartnerFromSheet = async () => {
-      const response = await fetch(`/api/users/allowed?email=${encodeURIComponent(userEmail)}`);
+      const response = await fetch(apiUrl(`/api/users/allowed?email=${encodeURIComponent(userEmail)}`));
       if (!response.ok) return;
       const data = await response.json();
       if (!mounted || !data.partner) return;

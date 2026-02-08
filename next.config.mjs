@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: false,
+  output: "standalone",
   turbopack: {
     root: __dirname,
   },

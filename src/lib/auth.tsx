@@ -125,8 +125,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fetch role from Users sheet via API
     if (authUser.email) {
       try {
-        const response = await fetch(
-          `/api/users/allowed?email=${encodeURIComponent(authUser.email)}`
+        const { apiUrl } = await import("@/lib/api-base");
+          const response = await fetch(
+            apiUrl(`/api/users/allowed?email=${encodeURIComponent(authUser.email)}`)
         );
         if (response.ok) {
           const data = await response.json();

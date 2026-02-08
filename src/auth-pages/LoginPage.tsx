@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/api-base";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido").max(255),
@@ -67,7 +68,7 @@ export function LoginPage() {
 
   const checkAdmin = async (email: string) => {
     try {
-      const response = await fetch(`/api/users/allowed?email=${encodeURIComponent(email)}`);
+      const response = await fetch(apiUrl(`/api/users/allowed?email=${encodeURIComponent(email)}`));
       if (!response.ok) {
         setIsAdminEmail(false);
         return;
@@ -93,7 +94,7 @@ export function LoginPage() {
 
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
-    const allowedResponse = await fetch(`/api/users/allowed?email=${encodeURIComponent(data.email)}`);
+    const allowedResponse = await fetch(apiUrl(`/api/users/allowed?email=${encodeURIComponent(data.email)}`));
     const allowedData = await allowedResponse.json();
     if (!allowedData.allowed) {
       setIsLoading(false);
@@ -130,7 +131,7 @@ export function LoginPage() {
       return;
     }
 
-    void fetch("/api/users/log", {
+    void fetch(apiUrl("/api/users/log"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: data.email }),
@@ -141,7 +142,7 @@ export function LoginPage() {
 
   const handleRegister = async (data: RegisterFormData) => {
     setIsLoading(true);
-    const allowedResponse = await fetch(`/api/users/allowed?email=${encodeURIComponent(data.email)}`);
+    const allowedResponse = await fetch(apiUrl(`/api/users/allowed?email=${encodeURIComponent(data.email)}`));
     const allowedData = await allowedResponse.json();
     if (!allowedData.allowed) {
       setIsLoading(false);
@@ -171,7 +172,7 @@ export function LoginPage() {
     const loadPartners = async () => {
       setPartnersLoading(true);
       try {
-        const response = await fetch("/api/users/partners");
+        const response = await fetch(apiUrl("/api/users/partners"));
         if (!response.ok) {
           if (mounted) setPartners([]);
           return;

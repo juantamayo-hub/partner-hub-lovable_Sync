@@ -21,6 +21,7 @@ import { es } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 import { DuplicatesChart } from '@/components/dashboard/DuplicatesChart';
 import { useAuth } from '@/lib/auth';
+import { apiUrl } from '@/lib/api-base';
 
 type DuplicateItem = {
   id: string;
@@ -55,7 +56,7 @@ export default function DuplicatesPage() {
   useEffect(() => {
     const fetchDuplicates = async () => {
       setLoading(true);
-      const url = new URL('/api/duplicates', window.location.origin);
+      const url = new URL(apiUrl('/api/duplicates'));
       if (partnerName) {
         url.searchParams.set('partner_name', partnerName);
       }

@@ -28,6 +28,7 @@ import { Search, Plus, Filter, MoreHorizontal, Mail, Phone, RefreshCw } from "lu
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { apiUrl } from "@/lib/api-base";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -118,7 +119,7 @@ export default function LeadsPage() {
     setLeadsLoading(true);
     setLeadsError(null);
     try {
-      const url = new URL("/api/leads", window.location.origin);
+      const url = new URL(apiUrl("/api/leads"));
       if (partnerName) {
         url.searchParams.set("partner_name", partnerName);
       }
@@ -144,7 +145,7 @@ export default function LeadsPage() {
     setStageLoading(true);
     setStageError(null);
     try {
-      const url = new URL("/api/leads/stages", window.location.origin);
+      const url = new URL(apiUrl("/api/leads/stages"));
       if (partnerName) {
         url.searchParams.set("partner_name", partnerName);
       }

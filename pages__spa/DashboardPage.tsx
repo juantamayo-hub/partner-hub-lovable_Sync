@@ -11,6 +11,7 @@ import { RecentLeadsTable } from '@/components/dashboard/RecentLeadsTable';
 import { DuplicatesTrendChart } from '@/components/dashboard/DuplicatesTrendChart';
 import { LossReasonsChart } from '@/components/dashboard/LossReasonsChart';
 import { LeadStageOverview } from '@/components/leads/LeadStageOverview';
+import { apiUrl } from '@/lib/api-base';
 
 type MetricsResponse = {
   summary: {
@@ -66,7 +67,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchMetrics = async () => {
       setLoading(true);
-      const url = new URL('/api/metrics', window.location.origin);
+      const url = new URL(apiUrl('/api/metrics'));
       if (partnerName) {
         url.searchParams.set('partner_name', partnerName);
       }
@@ -83,7 +84,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchLeads = async () => {
-      const url = new URL('/api/leads', window.location.origin);
+      const url = new URL(apiUrl('/api/leads'));
       if (partnerName) {
         url.searchParams.set('partner_name', partnerName);
       }
@@ -101,7 +102,7 @@ export default function DashboardPage() {
     const fetchStages = async () => {
       setStageLoading(true);
       setStageError(null);
-      const url = new URL('/api/leads/stages', window.location.origin);
+      const url = new URL(apiUrl('/api/leads/stages'));
       if (partnerName) {
         url.searchParams.set('partner_name', partnerName);
       }
