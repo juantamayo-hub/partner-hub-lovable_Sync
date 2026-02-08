@@ -1,22 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-function isAllowedOrigin(origin: string) {
-  return (
-    (origin.startsWith("https://id-preview--") &&
-      origin.endsWith(".lovable.app")) ||
-    origin === "http://localhost:5173" ||
-    origin === "http://localhost:3000"
-  );
-}
+const allowedOrigins = [
+  "https://id-preview--f161f390-f3fd-4f3d-8582-adbf8754373d.lovable.app",
+];
 
 export function middleware(req: NextRequest) {
   const origin = req.headers.get("origin");
+  const allowed = origin && allowedOrigins.includes(origin);
 
   // Preflight
   if (req.method === "OPTIONS") {
     const res = new NextResponse(null, { status: 204 });
-    if (origin && isAllowedOrigin(origin)) {
+    if (allowed) {
       res.headers.set("Access-Control-Allow-Origin", origin);
       res.headers.set(
         "Access-Control-Allow-Methods",
@@ -33,7 +29,7 @@ export function middleware(req: NextRequest) {
   }
 
   const res = NextResponse.next();
-  if (origin && isAllowedOrigin(origin)) {
+  if (allowed) {
     res.headers.set("Access-Control-Allow-Origin", origin);
     res.headers.set("Access-Control-Allow-Credentials", "true");
     res.headers.set("Vary", "Origin");
