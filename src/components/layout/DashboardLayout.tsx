@@ -35,28 +35,30 @@ export function DashboardLayout({ children, title, description, actions }: Dashb
   const activePartnerId = useMemo(() => {
     if (!isAdmin) return profile?.partner_id ?? undefined;
     if (viewMode === 'all') return undefined;
-    return searchParams.get('partner') ?? undefined;
+    return searchParams.get('partner') ?? searchParams.get('partner_name') ?? undefined;
   }, [isAdmin, profile?.partner_id, searchParams, viewMode]);
 
   const partnerNameFromUrl = searchParams.get('partner_name');
 
-  // Load partners list for admin
+  // Load partners list for admin (desde API / Google Sheets; funciona con skip auth)
   useEffect(() => {
     if (!isAdmin) return;
     let mounted = true;
 
     const loadPartners = async () => {
       setLoadingPartners(true);
-      const { data, error } = await supabase
-        .from('partners')
-        .select('id, name')
-        .order('name');
-
-      if (!error && mounted) {
-        setPartners(data ?? []);
-      }
-      if (mounted) {
-        setLoadingPartners(false);
+      try {
+        const response = await fetch(apiUrl('/api/users/partners'));
+        if (!response.ok) throw new Error('Partners no disponibles');
+        const data = await response.json();
+        const names = (data.partners ?? []) as string[];
+        if (mounted) {
+          setPartners(names.map((name) => ({ id: name, name })));
+        }
+      } catch {
+        if (mounted) setPartners([]);
+      } finally {
+        if (mounted) setLoadingPartners(false);
       }
     };
 

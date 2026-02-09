@@ -94,9 +94,19 @@ export function LoginPage() {
 
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
-    const allowedResponse = await fetch(apiUrl(`/api/users/allowed?email=${encodeURIComponent(data.email)}`));
-    const allowedData = await allowedResponse.json();
-    if (!allowedData.allowed) {
+    let allowedData: { allowed?: boolean; role?: string } | null = null;
+    try {
+      const allowedResponse = await fetch(apiUrl(`/api/users/allowed?email=${encodeURIComponent(data.email)}`));
+      allowedData = await allowedResponse.json();
+    } catch (e) {
+      setIsLoading(false);
+      console.error("Error al comprobar autorización:", e);
+      toast.error(
+        "No se pudo conectar con el servidor. Comprueba que la URL del backend (VITE_API_BASE_URL) esté configurada en Lovable y que la API permita CORS."
+      );
+      return;
+    }
+    if (!allowedData?.allowed) {
       setIsLoading(false);
       toast.error("Tu email no está autorizado. Contacta al administrador.");
       return;
@@ -142,9 +152,19 @@ export function LoginPage() {
 
   const handleRegister = async (data: RegisterFormData) => {
     setIsLoading(true);
-    const allowedResponse = await fetch(apiUrl(`/api/users/allowed?email=${encodeURIComponent(data.email)}`));
-    const allowedData = await allowedResponse.json();
-    if (!allowedData.allowed) {
+    let allowedData: { allowed?: boolean; role?: string } | null = null;
+    try {
+      const allowedResponse = await fetch(apiUrl(`/api/users/allowed?email=${encodeURIComponent(data.email)}`));
+      allowedData = await allowedResponse.json();
+    } catch (e) {
+      setIsLoading(false);
+      console.error("Error al comprobar autorización:", e);
+      toast.error(
+        "No se pudo conectar con el servidor. Comprueba que la URL del backend (VITE_API_BASE_URL) esté configurada en Lovable y que la API permita CORS."
+      );
+      return;
+    }
+    if (!allowedData?.allowed) {
       setIsLoading(false);
       toast.error("Tu email no está autorizado. Contacta al administrador.");
       return;

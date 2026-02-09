@@ -91,7 +91,8 @@ export default function DashboardPage() {
       const response = await fetch(url.toString());
       if (response.ok) {
         const data = await response.json();
-        setLeads(data.leads ?? []);
+        const raw = data?.leads;
+        setLeads(Array.isArray(raw) ? raw : []);
       }
     };
 
@@ -133,7 +134,8 @@ export default function DashboardPage() {
   }, [metrics]);
 
   const recentLeads = useMemo(() => {
-    return [...leads]
+    const list = Array.isArray(leads) ? leads : [];
+    return [...list]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5)
       .map((lead) => ({

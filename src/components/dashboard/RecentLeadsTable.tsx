@@ -41,7 +41,8 @@ const statusLabels: Record<string, string> = {
   lost: 'Perdido',
 };
 
-export function RecentLeadsTable({ leads }: RecentLeadsTableProps) {
+export function RecentLeadsTable({ leads: leadsProp }: RecentLeadsTableProps) {
+  const leads = Array.isArray(leadsProp) ? leadsProp : [];
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
