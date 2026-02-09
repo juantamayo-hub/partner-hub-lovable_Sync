@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Settings, Library, Mail, LogOut } from 'lucide-react';
+import { LayoutDashboard, Settings, Library, Mail, LogOut } from 'lucide-react';
 import { Link, usePathname, useRouter } from '@/router-adapter';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
@@ -20,7 +20,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/app', icon: LayoutDashboard },
-  { title: 'Leads', url: '/app/leads', icon: Users },
   { title: 'Recursos', url: '/app/resource-hub', icon: Library },
   { title: 'Contáctanos', url: '/app/contact', icon: Mail },
   { title: 'Panel de control', url: '/app/settings', icon: Settings, adminOnly: true },

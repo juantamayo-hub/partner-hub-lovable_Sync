@@ -102,7 +102,7 @@ const normalizeLead = (lead: RawLead, index: number) => {
     firstName,
     lastName,
     status: lead.status?.toLowerCase(),
-    stage: lead.stage?.toLowerCase(),
+    stage: lead.stage?.toString().trim() || undefined,
     source: lead.source,
     createdAt: parseDate(lead.createdAt),
     partner: lead.partner,

@@ -23,43 +23,19 @@ export async function GET(request: Request) {
       filteredB2b = b2bLeads.filter((lead) => normalizeOrg(lead.orgName) === normalized);
     }
 
-    const leadsByEmail = new Map(
-      filteredLeads
-        .filter((lead) => lead.emailNorm)
-        .map((lead) => [lead.emailNorm as string, lead])
-    );
-    const leadsByPhone = new Map(
-      filteredLeads
-        .filter((lead) => lead.phoneNorm)
-        .map((lead) => [lead.phoneNorm as string, lead])
-    );
-
-    const mergedLeads = filteredB2b.length
-      ? filteredB2b.map((lead) => {
-          const match =
-            (lead.emailNorm && leadsByEmail.get(lead.emailNorm)) ||
-            (lead.phoneNorm && leadsByPhone.get(lead.phoneNorm));
-          const resolvedStage = lead.stage?.toString().trim() || match?.stage;
-          const resolvedStatus = lead.status?.toString().trim() || match?.status;
-          return {
-            ...lead,
-            stage: resolvedStage,
-            status: resolvedStatus,
-            source: lead.orgName ?? partnerName ?? "B2B Copy",
-            dealId: lead.dealId ?? match?.dealId,
-          };
-        })
-      : filteredLeads;
-
-    const duplicates = computeDuplicates(mergedLeads);
+    // Usar la misma fuente que las métricas (filteredLeads = hoja principal) para que
+    // "Perdidos" y la tabla "Cerrados" coincidan. Antes se devolvían solo B2B cuando había datos.
+    const duplicates = computeDuplicates(filteredLeads);
     const duplicateMap = new Map<string, "same_partner" | "other_partners">();
     duplicates.forEach((dup) => {
       duplicateMap.set(dup.leadId, dup.type);
       duplicateMap.set(dup.matchedLeadId, dup.type);
     });
 
-    const payload = mergedLeads.map((lead) => ({
+    const payload = filteredLeads.map((lead) => ({
       ...lead,
+      stage: lead.stage?.toString().trim() ?? undefined,
+      lossReason: lead.lossReason?.toString().trim() ?? undefined,
       duplicateType:
         duplicateMap.get(lead.id) ??
         (lead.duplicateOther ? "other_partners" : lead.duplicateSame ? "same_partner" : null),

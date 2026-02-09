@@ -9,6 +9,7 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface LeadsChartProps {
   data: Array<{
@@ -17,21 +18,23 @@ interface LeadsChartProps {
     converted: number;
   }>;
   title?: string;
+  className?: string;
 }
 
-export function LeadsChart({ data, title = 'Leads por Día' }: LeadsChartProps) {
+export function LeadsChart({ data, title = 'Leads por Día', className }: LeadsChartProps) {
   return (
     <motion.div
+      className={cn('h-full', className)}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.1 }}
     >
-      <Card className="shadow-soft">
+      <Card className="h-full shadow-soft flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold">{title}</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-[300px] w-full">
+        <CardContent className="flex-1 min-h-0 flex flex-col">
+          <div className="flex-1 min-h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>

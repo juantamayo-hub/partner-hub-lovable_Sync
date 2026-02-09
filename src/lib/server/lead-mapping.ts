@@ -35,38 +35,93 @@ export function mapSheetRows(rows: string[][]): RawLead[] {
   const headers = rows[0];
   const dataRows = rows.slice(1);
 
-  const emailIndex = findHeaderIndex(headers, ["email", "e_mail", "correo", "correo_electronico"]);
-  const phoneIndex = findHeaderIndex(headers, [
-    "phone",
-    "phone_number",
-    "telefono",
-    "tel",
-    "mobile",
-    "celular",
+  // Bayteca_leads_2026: Person name (E), Organization name (D), Lost reason Opportunity (R), Stage name (I)
+  // B2B Copy: Name (B), Phone Numb (C), Email (D), Lead Source (G)
+  const emailIndex = findHeaderIndex(headers, [
+    "email",
+    "Contact email 1T",
   ]);
-  const nameIndex = findHeaderIndex(headers, ["name", "full_name", "nombre_completo"]);
-  const firstNameIndex = findHeaderIndex(headers, ["first_name", "nombre", "nombre_first"]);
-  const lastNameIndex = findHeaderIndex(headers, ["last_name", "apellido", "apellidos"]);
+  const phoneIndex = findHeaderIndex(headers, [
+    "Contact phone 1T",
+    "phone"
+  ]);
+  const nameIndex = findHeaderIndex(headers, [
+    "person_name",
+    "person name",
+    "name",
+    "full_name",
+    "full name",
+    "nombre_completo",
+    "nombre completo",
+    "contact name",
+    "lead name",
+    "nombre",
+  ]);
+  const firstNameIndex = findHeaderIndex(headers, [
+    "first_name",
+    "first name",
+    "nombre",
+    "given name",
+    "nombre_first",
+  ]);
+  const lastNameIndex = findHeaderIndex(headers, [
+    "last_name",
+    "last name",
+    "apellido",
+    "apellidos",
+    "family name",
+  ]);
   const statusIndex = findHeaderIndex(headers, ["status", "estado"]);
-  // "Stage name" is the primary column for pipeline stages in Bayteca leads sheet (typically column I)
-  const stageIndex = findHeaderIndex(headers, ["stage_name", "stage", "etapa", "fase", "pipeline_stage"]);
-  const sourceIndex = findHeaderIndex(headers, ["source", "fuente", "origen"]);
-  const createdAtIndex = findHeaderIndex(headers, ["created_at", "created", "fecha", "date", "timestamp"]);
+  const stageIndex = findHeaderIndex(headers, [
+    "stage_name",
+    "stage name",
+    "stage",
+    "etapa",
+    "fase",
+    "pipeline_stage",
+    "pipeline",
+  ]);
+  const sourceIndex = findHeaderIndex(headers, [
+    "organization_name",
+    "organization name",
+    "lead source",
+    "lead_source",
+    "source",
+    "fuente",
+    "origen",
+  ]);
+  const createdAtIndex = findHeaderIndex(headers, [
+    "created_at",
+    "created",
+    "fecha",
+    "date",
+    "timestamp",
+    "deal created",
+  ]);
   const partnerIndex = findHeaderIndex(headers, [
     "partner",
     "partner_name",
-    "partner_id",
-    "tenant",
     "org",
     "org_name",
     "company",
     "empresa",
   ]);
-  const orgNameIndex = findHeaderIndex(headers, ["organization_name", "org_name", "organization"]);
-  const dealIdIndex = findHeaderIndex(headers, ["deal_id", "id", "record_id"]);
+  const orgNameIndex = findHeaderIndex(headers, [
+    "organization_name",
+    "organization name",
+    "org_name",
+    "organization",
+  ]);
+  const dealIdIndex = findHeaderIndex(headers, ["deal_id", "deal id", "id", "record_id"]);
   const lossReasonIndex = findHeaderIndex(headers, [
+    "lost_reason_opportunity",
+    "lost reason opportunity",
     "[residents] loss reason opportunity",
     "[residents] lost reason opportunity",
+    "loss reason",
+    "loss_reason",
+    "motivo cierre",
+    "motivo_cierre",
   ]);
   const duplicateSameIndex = findHeaderIndex(headers, ["duplicados", "dup_same", "duplicate_same"]);
   const duplicateOtherIndex = findHeaderIndex(headers, [

@@ -259,9 +259,6 @@ export function DashboardLayout({ children, title, description, actions }: Dashb
                   </p>
                   <p className="text-xs text-muted-foreground">{userEmail}</p>
                 </div>
-                <Button variant="outline" size="sm">
-                  Referir ahora
-                </Button>
                 <Button
                   variant="outline"
                   size="sm"

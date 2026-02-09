@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 import {
   Tooltip,
   TooltipContent,
@@ -155,32 +154,6 @@ export function LeadStageOverview({
           </div>
         </CardContent>
       </Card>
-
-      {/* Funnel Visualization */}
-      <Card className="shadow-soft">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Distribución por Etapa
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {activeStages.map((stage, index) => (
-              <FunnelBar
-                key={stage.stage}
-                stage={stage}
-                index={index}
-                total={data.total}
-                totalStages={activeStages.length}
-                isSelected={selectedStage === stage.stage}
-                onSelect={() =>
-                  onStageSelect?.(selectedStage === stage.stage ? null : stage.stage)
-                }
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </motion.div>
   );
 }
@@ -258,67 +231,6 @@ function StageCard({
 }
 
 /**
- * Horizontal bar in the funnel visualization
- */
-function FunnelBar({
-  stage,
-  index,
-  total,
-  totalStages,
-  isSelected,
-  onSelect,
-}: {
-  stage: StageCount;
-  index: number;
-  total: number;
-  totalStages: number;
-  isSelected: boolean;
-  onSelect: () => void;
-}) {
-  const percentage = total > 0 ? (stage.count / total) * 100 : 0;
-  const step = totalStages > 1 ? 80 / (totalStages - 1) : 0;
-  const barWidth = Math.max(20, Math.min(100, 100 - index * step));
-
-  return (
-    <motion.button
-      onClick={onSelect}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={cn(
-        "group flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left transition-all",
-        "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        isSelected && "bg-primary/5 ring-1 ring-primary/20"
-      )}
-    >
-      <div
-        className="h-3 w-3 flex-shrink-0 rounded-full"
-        style={{ backgroundColor: stage.color }}
-      />
-      <span className="min-w-[120px] text-sm font-medium text-foreground group-hover:text-primary">
-        {stage.shortLabel}
-      </span>
-      <div className="flex-1">
-        <div style={{ width: `${barWidth}%` }} className="mx-auto">
-          <Progress
-            value={percentage}
-            className="h-2"
-            style={
-              {
-                "--progress-color": stage.color,
-              } as React.CSSProperties
-            }
-          />
-        </div>
-      </div>
-      <span className="min-w-[60px] text-right text-sm tabular-nums text-muted-foreground">
-        {stage.count} <span className="text-xs">({percentage.toFixed(0)}%)</span>
-      </span>
-    </motion.button>
-  );
-}
-
-/**
  * Loading skeleton for the stage overview
  */
 function LoadingSkeleton() {
@@ -338,18 +250,6 @@ function LoadingSkeleton() {
               <Skeleton key={i} className="h-24 flex-1 rounded-lg" />
             ))}
           </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="space-y-3 pt-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center gap-3">
-              <Skeleton className="h-3 w-3 rounded-full" />
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-2 flex-1" />
-              <Skeleton className="h-4 w-16" />
-            </div>
-          ))}
         </CardContent>
       </Card>
     </div>

@@ -1,14 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface DuplicatesChartProps {
   samePartner: number;
   crossPartner: number;
   sameLabel?: string;
+  className?: string;
 }
 
-export function DuplicatesChart({ samePartner, crossPartner, sameLabel }: DuplicatesChartProps) {
+export function DuplicatesChart({ samePartner, crossPartner, sameLabel, className }: DuplicatesChartProps) {
   const sameName = sameLabel && sameLabel.trim().length > 0 ? sameLabel : 'Mismo Partner';
   const data = [
     { name: sameName, value: samePartner },
@@ -19,16 +21,17 @@ export function DuplicatesChart({ samePartner, crossPartner, sameLabel }: Duplic
 
   return (
     <motion.div
+      className={cn('h-full', className)}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
     >
-      <Card className="shadow-soft">
+      <Card className="h-full shadow-soft flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-semibold">Duplicados</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-[250px] w-full">
+        <CardContent className="flex-1 min-h-0 flex flex-col">
+          <div className="h-[300px] w-full flex-shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie

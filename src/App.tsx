@@ -1,12 +1,11 @@
 import { useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { LoginPage } from "@/auth-pages/LoginPage";
 import { ForgotPasswordPage } from "@/auth-pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/auth-pages/ResetPasswordPage";
 import DashboardPage from "@/pages__spa/DashboardPage";
-import LeadsPage from "@/pages__spa/LeadsPage";
 import DuplicatesPage from "@/pages__spa/DuplicatesPage";
 import ContactPage from "@/pages__spa/ContactPage";
 import IntegrationsPage from "@/pages__spa/IntegrationsPage";
@@ -44,7 +43,7 @@ export default function App() {
       <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
       <Route path="/auth/reset" element={<ResetPasswordPage />} />
       <Route path="/app" element={<DashboardPage />} />
-      <Route path="/app/leads" element={<LeadsPage />} />
+      <Route path="/app/leads" element={<Navigate to="/app" replace />} />
       <Route path="/app/duplicates" element={<DuplicatesPage />} />
       <Route path="/app/contact" element={<ContactPage />} />
       <Route path="/app/integrations" element={<IntegrationsPage />} />

@@ -7,11 +7,23 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { LeadsChart } from '@/components/dashboard/LeadsChart';
 import { DuplicatesChart } from '@/components/dashboard/DuplicatesChart';
-import { RecentLeadsTable } from '@/components/dashboard/RecentLeadsTable';
 import { DuplicatesTrendChart } from '@/components/dashboard/DuplicatesTrendChart';
 import { LossReasonsChart } from '@/components/dashboard/LossReasonsChart';
 import { LeadStageOverview } from '@/components/leads/LeadStageOverview';
+import { LeadsTable, type LeadItem } from '@/components/leads/LeadsTable';
 import { apiUrl } from '@/lib/api-base';
+
+type StageOverviewData = {
+  total: number;
+  countsByStage: Array<{
+    stage: string;
+    rawStage: string;
+    count: number;
+    percentage: number;
+    shortLabel: string;
+    color: string;
+  }>;
+};
 
 type MetricsResponse = {
   summary: {
@@ -32,29 +44,11 @@ type MetricsResponse = {
   lossReasons?: Array<{ reason: string; count: number }>;
 };
 
-type StageOverviewData = {
-  total: number;
-  countsByStage: Array<{
-    stage: string;
-    rawStage: string;
-    count: number;
-    percentage: number;
-    shortLabel: string;
-    color: string;
-  }>;
-};
-
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null);
-  const [leads, setLeads] = useState<Array<{
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    emailRaw?: string;
-    source?: string;
-    status?: string;
-    createdAt: string;
-  }>>([]);
+  const [leads, setLeads] = useState<LeadItem[]>([]);
+  const [leadsLoading, setLeadsLoading] = useState(true);
+  const [leadsError, setLeadsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stageData, setStageData] = useState<StageOverviewData | null>(null);
   const [stageLoading, setStageLoading] = useState(true);
@@ -62,7 +56,6 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
 
   const partnerName = searchParams.get('partner_name');
-  const viewMode = searchParams.get('view') ?? 'partner';
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -84,15 +77,26 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchLeads = async () => {
-      const url = new URL(apiUrl('/api/leads'));
-      if (partnerName) {
-        url.searchParams.set('partner_name', partnerName);
-      }
-      const response = await fetch(url.toString());
-      if (response.ok) {
+      setLeadsLoading(true);
+      setLeadsError(null);
+      try {
+        const url = new URL(apiUrl('/api/leads'));
+        if (partnerName) {
+          url.searchParams.set('partner_name', partnerName);
+        }
+        const response = await fetch(url.toString());
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Error al cargar leads');
+        }
         const data = await response.json();
         const raw = data?.leads;
         setLeads(Array.isArray(raw) ? raw : []);
+      } catch (e) {
+        setLeadsError(e instanceof Error ? e.message : 'Error al cargar leads');
+        setLeads([]);
+      } finally {
+        setLeadsLoading(false);
       }
     };
 
@@ -104,23 +108,19 @@ export default function DashboardPage() {
       setStageLoading(true);
       setStageError(null);
       const url = new URL(apiUrl('/api/leads/stages'));
-      if (partnerName) {
-        url.searchParams.set('partner_name', partnerName);
-      }
+      if (partnerName) url.searchParams.set('partner_name', partnerName);
       url.searchParams.set('active_only', '1');
       const response = await fetch(url.toString());
       if (!response.ok) {
         const data = await response.json();
         setStageError(data.error || 'No se pudieron cargar las etapas');
         setStageData(null);
-        setStageLoading(false);
-        return;
+      } else {
+        const data = await response.json();
+        setStageData(data);
       }
-      const data = await response.json();
-      setStageData(data);
       setStageLoading(false);
     };
-
     void fetchStages();
   }, [partnerName]);
 
@@ -133,20 +133,17 @@ export default function DashboardPage() {
     }));
   }, [metrics]);
 
-  const recentLeads = useMemo(() => {
-    const list = Array.isArray(leads) ? leads : [];
-    return [...list]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5)
-      .map((lead) => ({
-        id: lead.id,
-        full_name: [lead.firstName, lead.lastName].filter(Boolean).join(' ') || 'Sin nombre',
-        email: lead.emailRaw ?? '-',
-        source: lead.source ?? '-',
-        status: lead.status ?? 'new',
-        created_at: lead.createdAt,
-      }));
-  }, [leads]);
+  const handleLeadsRetry = () => {
+    setLeadsError(null);
+    setLeadsLoading(true);
+    const url = new URL(apiUrl('/api/leads'));
+    if (partnerName) url.searchParams.set('partner_name', partnerName);
+    fetch(url.toString())
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('Error al cargar'))))
+      .then((data) => setLeads(Array.isArray(data?.leads) ? data.leads : []))
+      .catch((e) => setLeadsError(e instanceof Error ? e.message : 'Error'))
+      .finally(() => setLeadsLoading(false));
+  };
 
   return (
     <DashboardLayout title="Dashboard" description="Resumen de métricas y actividad">
@@ -203,6 +200,7 @@ export default function DashboardPage() {
           />
         </div>
 
+        {/* Pipeline de Leads (funnel) */}
         <LeadStageOverview
           data={stageData}
           loading={stageLoading}
@@ -210,24 +208,31 @@ export default function DashboardPage() {
           selectedStage={null}
         />
 
-        {/* Charts Row */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+        {/* Charts Row: misma altura para ambos boxes */}
+        <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
+          <div className="lg:col-span-2 h-full min-h-[340px]">
             <LeadsChart data={chartData} />
           </div>
-          <DuplicatesChart
-            samePartner={metrics?.summary.duplicatesSame ?? 0}
-            crossPartner={metrics?.summary.duplicatesOther ?? 0}
-            sameLabel={partnerName ?? undefined}
-          />
+          <div className="h-full min-h-[340px]">
+            <DuplicatesChart
+              samePartner={metrics?.summary.duplicatesSame ?? 0}
+              crossPartner={metrics?.summary.duplicatesOther ?? 0}
+              sameLabel={partnerName ?? undefined}
+            />
+          </div>
         </div>
 
         <LossReasonsChart data={metrics?.lossReasons ?? []} />
 
         <DuplicatesTrendChart data={metrics?.weekly ?? []} sameLabel={partnerName ?? undefined} />
 
-        {/* Recent Leads Table */}
-        <RecentLeadsTable leads={recentLeads} />
+        <LeadsTable
+          leads={leads}
+          loading={leadsLoading}
+          error={leadsError}
+          onRetry={handleLeadsRetry}
+          title="Lista de Leads"
+        />
         {loading && (
           <p className="text-sm text-muted-foreground">Cargando métricas desde Sheets...</p>
         )}

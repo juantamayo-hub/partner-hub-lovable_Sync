@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
-import { ClientRouterWrapper } from "./ClientRouterWrapper";
 
 export const metadata: Metadata = {
   title: "Partner Site",
@@ -16,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <Providers>
-          <ClientRouterWrapper>{children}</ClientRouterWrapper>
+          {children}
         </Providers>
       </body>
     </html>
