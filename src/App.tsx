@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { LoginPage } from "@/auth-pages/LoginPage";
+import { ForgotPasswordPage } from "@/auth-pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "@/auth-pages/ResetPasswordPage";
 import DashboardPage from "@/pages__spa/DashboardPage";
 import DuplicatesPage from "@/pages__spa/DuplicatesPage";
 import ContactPage from "@/pages__spa/ContactPage";
@@ -29,6 +32,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
+      <Route path="/auth/login" element={<LoginPage />} />
+      <Route path="/auth/forgot" element={<ForgotPasswordPage />} />
+      <Route path="/auth/reset" element={<ResetPasswordPage />} />
       <Route path="/app" element={<DashboardPage />} />
       <Route path="/app/leads" element={<Navigate to="/app" replace />} />
       <Route path="/app/duplicates" element={<DuplicatesPage />} />

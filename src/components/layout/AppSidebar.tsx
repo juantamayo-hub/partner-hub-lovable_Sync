@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Library, Mail } from 'lucide-react';
+import { LayoutDashboard, Settings, Library, Mail, LogOut } from 'lucide-react';
 import { Link, usePathname, useRouter } from '@/router-adapter';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
@@ -110,6 +110,19 @@ export function AppSidebar() {
                 {userEmail}
               </span>
             </div>
+          )}
+          {!collapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={async () => {
+                await signOut();
+                router.replace("/auth/login");
+              }}
+              className="h-8 w-8 shrink-0 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           )}
         </div>
       </SidebarFooter>
