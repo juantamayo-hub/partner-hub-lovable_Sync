@@ -99,159 +99,107 @@ export function LeadStageOverview({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-4"
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
     >
-      {/* Header with total */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <TrendingUp className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-foreground">Pipeline de Leads</h3>
-            <p className="text-sm text-muted-foreground">
-              {data.total} leads en {activeStages.length} etapas
-            </p>
-          </div>
+      {/* Header section */}
+      <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+        <div>
+          <h3 className="text-xl font-bold text-slate-800 tracking-tight">Estados del Pipeline</h3>
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-0.5">
+            Vista Proporcional del Pipeline
+          </p>
         </div>
-        {selectedStage && (
-          <Badge
-            variant="secondary"
-            className="cursor-pointer gap-1"
-            onClick={() => onStageSelect?.(null)}
-          >
-            <Filter className="h-3 w-3" />
-            {selectedStage}
-            <span className="ml-1 text-xs">×</span>
-          </Badge>
-        )}
       </div>
 
-      {/* Pipeline Strip - Horizontal kanban-style view */}
-      <Card className="overflow-hidden shadow-soft">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Leads activos
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pb-4">
-          <div className="flex flex-wrap items-stretch gap-2">
-            {activeStages.map((stage, index) => (
-              <StageCard
-                key={stage.stage}
-                stage={stage}
-                maxCount={maxCount}
-                isLast={index === activeStages.length - 1}
-                isSelected={selectedStage === stage.stage}
-                onSelect={() =>
-                  onStageSelect?.(selectedStage === stage.stage ? null : stage.stage)
-                }
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Horizontal Proportional Funnel List */}
+      <div className="space-y-1 py-4 max-w-4xl mx-auto">
+        {activeStages.map((stage, index) => {
+          const isSelected = selectedStage === stage.stage;
+          const percentageOfTotal = (stage.count / data.total) * 100;
+
+          // Width of the "White Track" narrows gradually (funnel silhouette)
+          const trackWidth = 100 - (index * 7);
+
+          // Fill width is proportional to lead volume relative to max (usually first stage)
+          const fillWidth = (stage.count / maxCount) * 100;
+
+          return (
+            <motion.div
+              key={stage.stage}
+              className={cn(
+                "grid grid-cols-[140px_1fr_100px] items-center gap-6 py-2 px-4 rounded-xl transition-all duration-200 cursor-pointer group",
+                isSelected ? "bg-emerald-50/50 shadow-sm border border-emerald-100/50" : "hover:bg-slate-50"
+              )}
+              onClick={() => onStageSelect?.(isSelected ? null : stage.stage)}
+              whileHover={{ x: 4 }}
+            >
+              {/* Left: Stage Name & Icon */}
+              <div className="flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: stage.color || '#064e3b' }} />
+                <span className={cn(
+                  "text-[11px] font-bold uppercase tracking-tight truncate",
+                  isSelected ? "text-emerald-700" : "text-slate-500"
+                )}>
+                  {stage.stage}
+                </span>
+              </div>
+
+              {/* Center: Proportional Bar with Narrowing Track */}
+              <div className="flex justify-center h-2 w-full relative">
+                <div
+                  className="h-full bg-slate-100/80 rounded-full flex justify-center items-center relative transition-all duration-700 ease-out"
+                  style={{ width: `${trackWidth}%` }}
+                >
+                  {/* The Green Fill */}
+                  <div
+                    className="h-full bg-[#064e3b] rounded-full shadow-sm absolute inset-y-0 left-1/2 -translate-x-1/2"
+                    style={{ width: `${(stage.count / (maxCount || 1)) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Right: Metrics */}
+              <div className="text-right flex items-baseline justify-end gap-2">
+                <span className={cn(
+                  "text-sm font-bold",
+                  isSelected ? "text-emerald-700" : "text-slate-700"
+                )}>
+                  {stage.count}
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  ({percentageOfTotal.toFixed(1)}%)
+                </span>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
     </motion.div>
   );
 }
 
 /**
- * Individual stage card in the pipeline strip
- */
-function StageCard({
-  stage,
-  maxCount,
-  isLast,
-  isSelected,
-  onSelect,
-}: {
-  stage: StageCount;
-  maxCount: number;
-  isLast: boolean;
-  isSelected: boolean;
-  onSelect: () => void;
-}) {
-  const barWidth = (stage.count / maxCount) * 100;
-
-  return (
-    <div className="flex items-center gap-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <motion.button
-            onClick={onSelect}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={cn(
-              "relative flex min-w-[90px] flex-1 basis-[120px] flex-col items-center rounded-lg border p-3 text-center transition-all",
-              "hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              isSelected
-                ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                : "border-border bg-card hover:border-primary/30"
-            )}
-          >
-            <span className="text-2xl font-bold" style={{ color: stage.color }}>
-              {stage.count}
-            </span>
-            <span className="mt-1 text-xs font-medium text-muted-foreground line-clamp-2">
-              {stage.shortLabel}
-            </span>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${barWidth}%` }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="h-full rounded-full"
-                style={{ backgroundColor: stage.color }}
-              />
-            </div>
-          </motion.button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <div className="text-sm">
-            <p className="font-medium">{stage.stage}</p>
-            <p className="text-muted-foreground">
-              {stage.count} leads ({stage.percentage.toFixed(1)}%)
-            </p>
-            {stage.rawStage !== stage.stage && (
-              <p className="mt-1 text-xs text-muted-foreground/70">
-                Campo original: {stage.rawStage}
-              </p>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-      {!isLast && (
-        <ArrowRight className="hidden h-4 w-4 flex-shrink-0 text-muted-foreground/40 sm:block" />
-      )}
-    </div>
-  );
-}
-
-/**
- * Loading skeleton for the stage overview
+ * Loading skeleton for the new step-based overview
  */
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-10 w-10 rounded-lg" />
-        <div className="space-y-1">
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-4 w-24" />
+    <div className="space-y-6">
+      <div className="flex items-end justify-between border-b pb-4">
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-32" />
         </div>
+        <Skeleton className="h-10 w-20" />
       </div>
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-24 flex-1 rounded-lg" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Skeleton key={i} className="h-32 rounded-xl" />
+        ))}
+      </div>
     </div>
   );
 }

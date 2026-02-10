@@ -6,12 +6,12 @@ import { Users, TrendingUp, Copy, Target, Euro, CheckCircle, XCircle } from 'luc
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { LeadsChart } from '@/components/dashboard/LeadsChart';
-import { DuplicatesChart } from '@/components/dashboard/DuplicatesChart';
-import { DuplicatesTrendChart } from '@/components/dashboard/DuplicatesTrendChart';
 import { LossReasonsChart } from '@/components/dashboard/LossReasonsChart';
 import { LeadStageOverview } from '@/components/leads/LeadStageOverview';
 import { LeadsTable, type LeadItem } from '@/components/leads/LeadsTable';
 import { apiUrl } from '@/lib/api-base';
+import { TimeFilter, type TimePeriod } from '@/components/dashboard/TimeFilter';
+import { DuplicatesChart } from '@/components/dashboard/DuplicatesChart';
 
 type StageOverviewData = {
   total: number;
@@ -53,6 +53,7 @@ export default function DashboardPage() {
   const [stageData, setStageData] = useState<StageOverviewData | null>(null);
   const [stageLoading, setStageLoading] = useState(true);
   const [stageError, setStageError] = useState<string | null>(null);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('mensual');
   const searchParams = useSearchParams();
 
   const partnerName = searchParams.get('partner_name');
@@ -64,6 +65,7 @@ export default function DashboardPage() {
       if (partnerName) {
         url.searchParams.set('partner_name', partnerName);
       }
+      url.searchParams.set('period', timePeriod);
       const response = await fetch(url.toString());
       if (response.ok) {
         const data = (await response.json()) as MetricsResponse;
@@ -73,7 +75,7 @@ export default function DashboardPage() {
     };
 
     void fetchMetrics();
-  }, [partnerName]);
+  }, [partnerName, timePeriod]);
 
   useEffect(() => {
     const fetchLeads = async () => {
@@ -124,14 +126,67 @@ export default function DashboardPage() {
     void fetchStages();
   }, [partnerName]);
 
-  const chartData = useMemo(() => {
-    if (!metrics) return [];
-    return metrics.daily.map((item) => ({
-      date: item.day.slice(5),
-      leads: item.leads,
-      converted: item.converted,
-    }));
-  }, [metrics]);
+  // Filtrado de datos basado en el timePeriod y "createdAt" (Deal created)
+  const filteredData = useMemo(() => {
+    if (!leads) return { leads: [], metrics: metrics?.summary, chartData: [] };
+
+    const now = new Date();
+    const filteredLeads = leads.filter((lead) => {
+      const created = new Date(lead.createdAt);
+      if (timePeriod === 'diario') {
+        return created.toDateString() === now.toDateString();
+      }
+      if (timePeriod === 'semanal') {
+        const lastWeek = new Date();
+        lastWeek.setDate(now.getDate() - 7);
+        return created >= lastWeek;
+      }
+      if (timePeriod === 'mensual') {
+        return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+      }
+      if (timePeriod === 'anual') {
+        return created.getFullYear() === now.getFullYear();
+      }
+      return true;
+    });
+
+    // Recalcular métricas básicas para la vista filtrada si los datos locales lo permiten
+    // Nota: El backend ya devuelve métricas, pero aquí las ajustamos al periodo seleccionado
+    // si estamos filtrando localmente sobre la lista completa de leads.
+    const totalLeads = filteredLeads.length;
+    const activeLeads = filteredLeads.filter(l => !l.lossReason).length;
+    const lostLeads = filteredLeads.filter(l => !!l.lossReason).length;
+    const duplicatesSame = filteredLeads.filter(l => l.duplicateType === 'same_partner').length;
+    const duplicatesOther = filteredLeads.filter(l => l.duplicateType === 'other_partners').length;
+
+    // Chart data agregation (daily for the selected period)
+    const dailyMap: Record<string, { leads: number, converted: number }> = {};
+    filteredLeads.forEach(lead => {
+      const dateKey = lead.createdAt.slice(0, 10); // YYYY-MM-DD
+      if (!dailyMap[dateKey]) dailyMap[dateKey] = { leads: 0, converted: 0 };
+      dailyMap[dateKey].leads++;
+      if (lead.stage === 'Won' || lead.stage === 'Ganado') dailyMap[dateKey].converted++;
+    });
+
+    const chartData = Object.entries(dailyMap)
+      .map(([date, counts]) => ({ date: date.slice(5), ...counts }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      leads: filteredLeads,
+      summary: {
+        totalLeads,
+        activeLeads,
+        lostLeads,
+        duplicatesSame,
+        duplicatesOther,
+        conversionRate: totalLeads > 0 ? (filteredLeads.filter(l => l.stage === 'Won').length / totalLeads) * 100 : 0
+      },
+      chartData
+    };
+  }, [leads, timePeriod, metrics]);
+
+  // Rest of the component uses filteredData.summary and filteredData.chartData
 
   const handleLeadsRetry = () => {
     setLeadsError(null);
@@ -146,43 +201,35 @@ export default function DashboardPage() {
   };
 
   return (
-    <DashboardLayout title="Dashboard" description="Resumen de métricas y actividad">
+    <DashboardLayout
+      title="Página principal"
+      description="Resumen de métricas y actividad"
+      actions={<TimeFilter value={timePeriod} onChange={setTimePeriod} />}
+    >
       <div className="space-y-6">
         {/* Metrics Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <MetricCard
             title="Total leads enviados"
-            value={metrics?.summary.totalLeads ?? 0}
+            value={filteredData.summary?.totalLeads ?? 0}
             icon={<Users className="h-6 w-6" />}
             variant="primary"
           />
           <MetricCard
             title="Activos"
-            value={metrics?.summary.activeLeads ?? 0}
+            value={filteredData.summary?.activeLeads ?? 0}
             icon={<CheckCircle className="h-6 w-6" />}
             variant="success"
           />
           <MetricCard
             title="Perdidos"
-            value={metrics?.summary.lostLeads ?? 0}
+            value={filteredData.summary?.lostLeads ?? 0}
             icon={<XCircle className="h-6 w-6" />}
             variant="destructive"
           />
           <MetricCard
-            title="Duplicados mismo partner"
-            value={metrics?.summary.duplicatesSame ?? 0}
-            icon={<Copy className="h-6 w-6" />}
-            variant="warning"
-          />
-          <MetricCard
-            title="Duplicados otros partners"
-            value={metrics?.summary.duplicatesOther ?? 0}
-            icon={<Copy className="h-6 w-6" />}
-            variant="accent"
-          />
-          <MetricCard
-            title="Conversión (30d)"
-            value={`${(metrics?.summary.conversionRate ?? 0).toFixed(1)}%`}
+            title="Conversión (Periodo)"
+            value={`${(filteredData.summary?.conversionRate ?? 0).toFixed(1)}%`}
             icon={<Target className="h-6 w-6" />}
             variant="success"
           />
@@ -208,23 +255,20 @@ export default function DashboardPage() {
           selectedStage={null}
         />
 
-        {/* Charts Row: misma altura para ambos boxes */}
-        <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
-          <div className="lg:col-span-2 h-full min-h-[340px]">
-            <LeadsChart data={chartData} />
+        {/* Charts Row */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="h-full min-h-[340px]">
+            <LeadsChart data={filteredData.chartData} />
           </div>
           <div className="h-full min-h-[340px]">
             <DuplicatesChart
-              samePartner={metrics?.summary.duplicatesSame ?? 0}
-              crossPartner={metrics?.summary.duplicatesOther ?? 0}
-              sameLabel={partnerName ?? undefined}
+              samePartner={filteredData.summary?.duplicatesSame ?? 0}
+              crossPartner={filteredData.summary?.duplicatesOther ?? 0}
             />
           </div>
         </div>
 
         <LossReasonsChart data={metrics?.lossReasons ?? []} />
-
-        <DuplicatesTrendChart data={metrics?.weekly ?? []} sameLabel={partnerName ?? undefined} />
 
         <LeadsTable
           leads={leads}

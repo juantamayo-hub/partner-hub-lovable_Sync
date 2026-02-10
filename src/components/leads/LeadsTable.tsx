@@ -131,16 +131,14 @@ export function LeadsTable({
           <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[18%]">Nombre</TableHead>
-                <TableHead className="w-[20%]">Contacto</TableHead>
-                <TableHead className="w-[14%]">Fuente</TableHead>
-                <TableHead className="w-[10%]">Estado</TableHead>
-                <TableHead className="w-[12%]">Etapa</TableHead>
+                <TableHead className="w-[25%]">Nombre</TableHead>
+                <TableHead className="w-[20%]">Fuente</TableHead>
+                <TableHead className="w-[12%]">Estado</TableHead>
+                <TableHead className="w-[15%]">Etapa</TableHead>
                 {openClosed === "closed" && (
-                  <TableHead className="w-[14%]">Motivo cierre</TableHead>
+                  <TableHead className="w-[15%]">Motivo cierre</TableHead>
                 )}
-                <TableHead className="w-[10%]">Duplicado</TableHead>
-                <TableHead className="w-[12%] text-right">Fecha</TableHead>
+                <TableHead className="w-[13%] text-right">Fecha</TableHead>
                 <TableHead className="w-[4%]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -151,30 +149,11 @@ export function LeadsTable({
                 const status = statusConfig[derivedStatus] ?? statusConfig.active;
                 const fullName =
                   [lead.firstName, lead.lastName].filter(Boolean).join(" ") || "Sin nombre";
-                const duplicateLabel =
-                  lead.duplicateType === "other_partners"
-                    ? "Otro partner"
-                    : lead.duplicateType === "same_partner"
-                      ? "Mismo partner"
-                      : null;
+
                 return (
                   <TableRow key={lead.id}>
                     <TableCell>
                       <div className="truncate font-medium">{fullName}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <Mail className="h-3.5 w-3.5 shrink-0" />
-                          <span className="truncate">{lead.emailRaw ?? "-"}</span>
-                        </div>
-                        {lead.phoneRaw && (
-                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                            <Phone className="h-3.5 w-3.5 shrink-0" />
-                            <span className="truncate">{lead.phoneRaw}</span>
-                          </div>
-                        )}
-                      </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       <span className="truncate">{lead.source ?? "-"}</span>
@@ -199,13 +178,6 @@ export function LeadsTable({
                         <span className="text-sm">{lead.lossReason ?? "-"}</span>
                       </TableCell>
                     )}
-                    <TableCell>
-                      {duplicateLabel ? (
-                        <Badge variant="outline">{duplicateLabel}</Badge>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
                     <TableCell className="text-right text-muted-foreground">
                       {format(new Date(lead.createdAt), "dd MMM yyyy", { locale: es })}
                     </TableCell>
@@ -233,7 +205,7 @@ export function LeadsTable({
               {filteredLeads.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={openClosed === "closed" ? 9 : 8}
+                    colSpan={openClosed === "closed" ? 6 : 5}
                     className="h-24 text-center text-muted-foreground"
                   >
                     {loading ? "Cargando leads..." : "No se encontraron leads"}
@@ -258,12 +230,6 @@ export function LeadsTable({
                   "Sin nombre"}
               </div>
               <div>
-                <span className="font-semibold">Email:</span> {selectedLead.emailRaw ?? "-"}
-              </div>
-              <div>
-                <span className="font-semibold">Teléfono:</span> {selectedLead.phoneRaw ?? "-"}
-              </div>
-              <div>
                 <span className="font-semibold">Estado:</span>{" "}
                 {selectedLead.lossReason?.toString().trim() ? "Inactivo" : "Activo"}
               </div>
@@ -272,14 +238,6 @@ export function LeadsTable({
               </div>
               <div>
                 <span className="font-semibold">Motivo:</span> {selectedLead.lossReason ?? "-"}
-              </div>
-              <div>
-                <span className="font-semibold">Duplicado:</span>{" "}
-                {selectedLead.duplicateType === "other_partners"
-                  ? "Con otros partners"
-                  : selectedLead.duplicateType === "same_partner"
-                    ? "Mismo partner"
-                    : "No"}
               </div>
             </div>
           )}

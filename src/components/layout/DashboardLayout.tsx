@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { apiUrl } from '@/lib/api-base';
+import { NPSPopup } from './NPSPopup';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -201,7 +202,7 @@ export function DashboardLayout({ children, title, description, actions }: Dashb
                     <Shield className="h-3 w-3" />
                     Admin
                   </Badge>
-                  
+
                   {/* View Mode Toggle */}
                   <div className="flex items-center gap-1 rounded-lg border p-1">
                     <Button
@@ -245,31 +246,25 @@ export function DashboardLayout({ children, title, description, actions }: Dashb
                   )}
                 </div>
               )}
-              
+
               {actions && <div className="flex items-center gap-2">{actions}</div>}
-              
-              <div className="flex items-center gap-3">
-                <div className="hidden text-right text-sm md:block">
-                  <p className="font-medium text-foreground">
-                    {isAdmin && viewMode === 'all' 
-                      ? 'Vista Global'
-                      : partnerNameFromUrl ??
-                        partnerName ??
-                        (profile?.partner_id ? "Partner asignado" : "Sin partner")}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{userEmail}</p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    await signOut();
-                    router.replace("/auth/login");
-                  }}
-                >
-                  Cerrar sesión
-                </Button>
+
+              <div className="hidden text-right text-sm md:block">
+                <p className="font-medium text-foreground">
+                  {isAdmin && viewMode === 'all'
+                    ? 'Vista Global'
+                    : partnerNameFromUrl ??
+                    partnerName ??
+                    (profile?.partner_id ? "Partner asignado" : "Sin partner")}
+                </p>
+                <p className="text-xs text-muted-foreground">{userEmail}</p>
               </div>
+              <Button
+                className="bg-[#064e3b] hover:bg-[#065f46] text-white shadow-md transition-all"
+                onClick={() => router.push('/app/contact')}
+              >
+                Referir ahora
+              </Button>
             </div>
           </header>
 
@@ -277,8 +272,9 @@ export function DashboardLayout({ children, title, description, actions }: Dashb
           <main className="flex-1 overflow-auto p-6">
             {children}
           </main>
+          <NPSPopup />
         </SidebarInset>
       </div>
-    </SidebarProvider>
+    </SidebarProvider >
   );
 }

@@ -16,11 +16,6 @@ const sections = [
     description: "Respuestas rápidas para partners y clientes.",
     icon: HelpCircle,
   },
-  {
-    title: "NPS",
-    description: "Resultados y guías para seguimiento de NPS.",
-    icon: BarChart3,
-  },
 ];
 
 export default function ResourceHubPage() {
