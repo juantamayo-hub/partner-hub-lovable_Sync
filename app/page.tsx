@@ -9,16 +9,7 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        router.replace("/app");
-      } else {
-        router.replace("/auth/login");
-      }
-    };
-
-    void checkSession();
+    router.replace("/app");
   }, [router]);
 
   return (

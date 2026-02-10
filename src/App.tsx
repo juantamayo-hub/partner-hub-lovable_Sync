@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/lib/auth";
 import { LoginPage } from "@/auth-pages/LoginPage";
 import { ForgotPasswordPage } from "@/auth-pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/auth-pages/ResetPasswordPage";
@@ -14,16 +13,10 @@ import SettingsPage from "@/pages__spa/SettingsPage";
 
 function HomeRedirect() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (loading) return;
-    if (user) {
-      navigate("/app", { replace: true });
-    } else {
-      navigate("/auth/login", { replace: true });
-    }
-  }, [loading, user, navigate]);
+    navigate("/app", { replace: true });
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">

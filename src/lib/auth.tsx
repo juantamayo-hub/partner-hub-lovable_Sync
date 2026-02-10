@@ -43,9 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
   const lastFetchedUserIdRef = useRef<string | null>(null);
-  const skipAuth =
-    (typeof import.meta !== "undefined" && (import.meta as { env?: Record<string, string> }).env?.VITE_SKIP_AUTH === "true") ||
-    process.env.NEXT_PUBLIC_SKIP_AUTH === "true";
+  const skipAuth = true;
 
   useEffect(() => {
     if (skipAuth) {
@@ -126,8 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (authUser.email) {
       try {
         const { apiUrl } = await import("@/lib/api-base");
-          const response = await fetch(
-            apiUrl(`/api/users/allowed?email=${encodeURIComponent(authUser.email)}`)
+        const response = await fetch(
+          apiUrl(`/api/users/allowed?email=${encodeURIComponent(authUser.email)}`)
         );
         if (response.ok) {
           const data = await response.json();
